@@ -21,5 +21,12 @@ namespace MatasanoCrypto
             String stringB = "686974207468652062756c6c277320657965";
             Assert.AreEqual("746865206b696420646f6e277420706c6179", Basics.XOR(stringA, stringB));
         }
+
+        [TestMethod]
+        public void SingleByteXORCipher()
+        {
+            byte[] result = Basics.StringToByteArray(Basics.DetectSingleByteXORCipher("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"));
+            Assert.AreEqual("Cooking MC's like a pound of bacon", System.Text.Encoding.Default.GetString(result));
+        }
     }
 }

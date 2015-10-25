@@ -8,14 +8,16 @@ namespace MatasanoCrypto
 {
     public static class Basics
     {
-        private static Dictionary<char, double> ENGLISH_LETTER_FREQUENCIES = new Dictionary<char,double>{
-                                                                       {'E', 12.02}, {'T', 9.10}, {'A', 8.12}, {'O', 7.68}, {'I', 7.31}, {'N', 6.95}, {'S', 6.28}, {'R', 6.32}, {'H', 5.92},
-                                                                       {'D', 4.32}, {'L', 3.98}, {'U', 2.88}, {'C', 2.71}, {'M', 2.61}, {'F', 2.30}, {'Y', 2.11}, {'W', 2.09}, {'G', 2.03},
-                                                                       {'P', 1.82}, {'B', 1.49}, {'V', 1.11}, {'K', 0.69}, {'X', 0.17}, {'Q', 0.11}, {'J', 0.10}, {'Z', 0.07}
-                                                                   };
+        private static Dictionary<char, double> ENGLISH_LETTER_FREQUENCIES
+            = new Dictionary<char,double>{{'E', 12.02}, {'T', 9.10},
+            {'A', 8.12}, {'O', 7.68}, {'I', 7.31}, {'N', 6.95}, {'S', 6.28},
+            {'R', 6.32}, {'H', 5.92}, {'D', 4.32}, {'L', 3.98}, {'U', 2.88},
+            {'C', 2.71}, {'M', 2.61}, {'F', 2.30}, {'Y', 2.11}, {'W', 2.09},
+            {'G', 2.03}, {'P', 1.82}, {'B', 1.49}, {'V', 1.11}, {'K', 0.69},
+            {'X', 0.17}, {'Q', 0.11}, {'J', 0.10}, {'Z', 0.07}};
+
         public static void Main(string[] args)
         {
-            Console.WriteLine(DetectSingleByteXORCipher("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"));
         }
 
         public static String HexToBase64(String hexstring)
@@ -37,7 +39,7 @@ namespace MatasanoCrypto
             return ByteArrayToString(xorred);
         }
 
-        private static String DetectSingleByteXORCipher(string encyptedHex)
+        public static String DetectSingleByteXORCipher(string encyptedHex)
         {
             byte[] encryptedBytes = StringToByteArray(encyptedHex);
             double hiScore = Double.MaxValue;
@@ -45,7 +47,7 @@ namespace MatasanoCrypto
             String presumedUnencrypted = String.Empty;
 
             //try each possible character as the key
-            for (int k = 0; k < 255; k++ )
+            for (int k = 0; k < char.MaxValue; k++ )
             {
                 byte[] xorred = new byte[encryptedBytes.Length];
                 for (int x = 0; x < encryptedBytes.Length; x++)
@@ -65,6 +67,9 @@ namespace MatasanoCrypto
             return presumedUnencrypted;
         }
 
+        // Calculates deviation from the standard English letter frequency. The closer to 0 the better.
+        // Result is the sum of the difference between actual and expected frequency 
+        // (or |actual frequency - expected frequency|) for each letter
         private static double XORScore(byte[] xorredResult)
         {
             Dictionary<char, int> letterFrequencies = new Dictionary<char, int>();
@@ -74,6 +79,7 @@ namespace MatasanoCrypto
             //count occurences of each letter
             foreach(char c in xorredResult)
             {
+                //IsLetter() doesn't work well here because I want only English letters
                 if ((c>='A' && c<='Z') || (c>='a' && c<='z'))
                 {
                     char letter = char.ToUpper(c);
@@ -90,15 +96,15 @@ namespace MatasanoCrypto
                 }
             }
 
-            foreach(KeyValuePair<char, double> f in ENGLISH_LETTER_FREQUENCIES)
+            foreach(KeyValuePair<char, double> expectedFrequency in ENGLISH_LETTER_FREQUENCIES)
             {
-                double test = 0;
-                if (letterFrequencies.ContainsKey(f.Key))
+                double actualFrequency = 0;
+                if (letterFrequencies.ContainsKey(expectedFrequency.Key))
                 {
-                    test = letterFrequencies[f.Key];
+                    actualFrequency = letterFrequencies[expectedFrequency.Key];
                 }
                 
-                score += Math.Abs(test - f.Value);
+                score += Math.Abs(actualFrequency - expectedFrequency.Value);
             }
             return score;
         }
